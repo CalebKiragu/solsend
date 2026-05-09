@@ -134,10 +134,36 @@ export class SolSendEscrowSDK {
     );
   }
 
-  /** Generate a collision-resistant nonce (max 32 chars, URL-safe) */
+  /** 
+   * Generate a deterministic nonce for a creator+recipient pair.
+   * Uses a counter suffix so the same pair can have multiple escrows.
+   * Finds the first slot (0-99) whose PDA doesn't exist on-chain.
+   */
+  async generateNonceForPair(
+    creator: PublicKey,
+    recipient: PublicKey
+  ): Promise<string> {
+    // Base: first 8 chars of creator + first 8 chars of recipient (deterministic, readable)
+    const base =
+      creator.toBase58().slice(0, 8) + recipient.toBase58().slice(0, 8);
+
+    for (let i = 0; i < 100; i++) {
+      const nonce = `${base}${i.toString().padStart(2, "0")}`; // max 18 chars, well under 32
+      const [pda] = this.getEscrowPDA(creator, nonce);
+      const info = await this.provider.connection.getAccountInfo(pda);
+      if (info === null) {
+        // Slot is free — use it
+        return nonce;
+      }
+    }
+    // Extremely unlikely fallback: all 100 slots taken, use random
+    const bytes = new Uint8Array(8);
+    crypto.getRandomValues(bytes);
+    return Array.from(bytes).map((b) => b.toString(16).padStart(2, "0")).join("");
+  }
+
+  /** Generate a collision-resistant nonce (max 32 chars) — use generateNonceForPair when possible */
   generateNonce(): string {
-    // Use crypto.getRandomValues for true randomness — no timestamp component
-    // that could collide when multiple escrows are created in the same millisecond.
     const bytes = new Uint8Array(16);
     crypto.getRandomValues(bytes);
     return Array.from(bytes)
@@ -168,16 +194,6 @@ export class SolSendEscrowSDK {
 
       const [escrowPda] = this.getEscrowPDA(this.provider.publicKey, params.nonce);
       console.debug("[createEscrow] nonce:", params.nonce, "escrowPda:", escrowPda.toBase58());
-
-      // Pre-flight: ensure the derived PDA doesn't already exist on-chain.
-      // If it does (e.g. from a prior session), the init will fail with 0x0.
-      const existing = await this.provider.connection.getAccountInfo(escrowPda);
-      if (existing !== null) {
-        return {
-          success: false,
-          error: `Escrow account already exists on-chain (${escrowPda.toBase58().slice(0, 8)}…). Please try again — a new nonce will be generated.`,
-        };
-      }
 
       // Convert amount to smallest units
       let amountBN: BN;

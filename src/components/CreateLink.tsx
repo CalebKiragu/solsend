@@ -113,26 +113,18 @@ const CreateLink: React.FC = () => {
 
         const recipientPk = new PublicKey(recipient.trim());
 
-        // Retry up to 3 times in case of PDA collision (extremely rare with random nonce)
-        let result;
-        let nonce = "";
-        for (let attempt = 0; attempt < 3; attempt++) {
-          nonce = sdk.generateNonce();
-          result = await sdk.createEscrow({
-            recipient: recipientPk,
-            amount: parsedAmount,
-            tokenType: tokenType === "SOL" ? TOKEN_TYPE.SOL : TOKEN_TYPE.SPL,
-            tokenMint: tokenType === "USDC" ? USDC_MINT_DEVNET : null,
-            timeoutSeconds,
-            memo: memo.trim(),
-            nonce,
-          });
-          // If it failed due to an existing account, retry with a new nonce
-          if (!result.success && result.error?.includes("already exists on-chain")) {
-            continue;
-          }
-          break;
-        }
+        // Derive a nonce that guarantees a free PDA slot for this creator+recipient pair
+        const nonce = await sdk.generateNonceForPair(publicKey, recipientPk);
+
+        const result = await sdk.createEscrow({
+          recipient: recipientPk,
+          amount: parsedAmount,
+          tokenType: tokenType === "SOL" ? TOKEN_TYPE.SOL : TOKEN_TYPE.SPL,
+          tokenMint: tokenType === "USDC" ? USDC_MINT_DEVNET : null,
+          timeoutSeconds,
+          memo: memo.trim(),
+          nonce,
+        });
 
         if (!result || !result.success) {
           setError(result?.error || "Failed to create escrow on-chain");
