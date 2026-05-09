@@ -1,4 +1,4 @@
-import React, { useMemo } from "react";
+import React, { useMemo, useState, useEffect, useCallback } from "react";
 import { useWallet } from "@solana/wallet-adapter-react";
 import { Link, useNavigate } from "react-router-dom";
 import {
@@ -12,6 +12,7 @@ import {
   Repeat,
   Infinity,
   CalendarClock,
+  Loader2,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { getLinksByWallet } from "@/lib/linkStore";
@@ -129,11 +130,23 @@ const LinkRow: React.FC<{ link: PaymentLink; walletAddress: string }> = ({
 
 const Dashboard: React.FC = () => {
   const { publicKey } = useWallet();
+  const [links, setLinks] = useState<PaymentLink[]>([]);
+  const [loading, setLoading] = useState(false);
 
-  const links = useMemo(() => {
-    if (!publicKey) return [];
-    return getLinksByWallet(publicKey.toBase58());
+  const fetchLinks = useCallback(async () => {
+    if (!publicKey) return;
+    setLoading(true);
+    try {
+      const data = await getLinksByWallet(publicKey.toBase58());
+      setLinks(data);
+    } finally {
+      setLoading(false);
+    }
   }, [publicKey]);
+
+  useEffect(() => {
+    fetchLinks();
+  }, [fetchLinks]);
 
   const stats = useMemo(() => {
     const oneTime = links.filter((l) => l.type === "one-time").length;
@@ -158,6 +171,14 @@ const Dashboard: React.FC = () => {
         <p className="text-sm text-muted-foreground">
           Connect your Solana wallet to view your payment links.
         </p>
+      </div>
+    );
+  }
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
       </div>
     );
   }

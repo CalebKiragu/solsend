@@ -134,9 +134,16 @@ export class SolSendEscrowSDK {
     );
   }
 
-  /** Generate a unique nonce */
+  /** Generate a collision-resistant nonce (max 32 chars, URL-safe) */
   generateNonce(): string {
-    return Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
+    // Use crypto.getRandomValues for true randomness — no timestamp component
+    // that could collide when multiple escrows are created in the same millisecond.
+    const bytes = new Uint8Array(16);
+    crypto.getRandomValues(bytes);
+    return Array.from(bytes)
+      .map((b) => b.toString(16).padStart(2, "0"))
+      .join("")
+      .slice(0, 32);
   }
 
   // ===== Instructions =====

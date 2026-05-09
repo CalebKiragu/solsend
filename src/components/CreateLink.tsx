@@ -130,7 +130,7 @@ const CreateLink: React.FC = () => {
           return;
         }
 
-        const link = createPaymentLink({
+        const link = await createPaymentLink({
           type: "escrow",
           recipient: recipient.trim(),
           amount: parsedAmount,
@@ -152,7 +152,7 @@ const CreateLink: React.FC = () => {
         });
       } else {
         // One-time or Recurring -- just metadata, no on-chain tx
-        const link = createPaymentLink({
+        const link = await createPaymentLink({
           type: linkType,
           recipient: recipient.trim(),
           amount: parsedAmount,

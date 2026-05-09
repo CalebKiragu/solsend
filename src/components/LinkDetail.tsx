@@ -175,18 +175,18 @@ const LinkDetail: React.FC = () => {
   const walletAddress = publicKey?.toBase58() ?? null;
   const role: EscrowRole = link ? getEscrowRole(link, walletAddress) : "none";
 
-  const loadLink = useCallback(() => {
+  const loadLink = useCallback(async () => {
     if (!id) return;
-    const found = getLinkById(id);
+    const found = await getLinkById(id);
     if (found) {
       // Check expiry for non-escrow links
       if (isLinkExpired(found) && found.status === "active") {
-        updateLinkStatus(found.id, "expired");
+        await updateLinkStatus(found.id, "expired");
         found.status = "expired";
       }
       // Check escrow timeout auto-refund (only if not appealed)
       if (found.type === "escrow" && found.status === "funded" && isEscrowTimedOut(found)) {
-        updateLinkStatus(found.id, "refunded", { refundedAt: new Date().toISOString() });
+        await updateLinkStatus(found.id, "refunded", { refundedAt: new Date().toISOString() });
         found.status = "refunded";
         found.refundedAt = new Date().toISOString();
       }
@@ -213,8 +213,9 @@ const LinkDetail: React.FC = () => {
 
       if (remaining <= 0) {
         // Timeout elapsed -- auto refund
-        updateLinkStatus(link.id, "refunded", { refundedAt: new Date().toISOString() });
-        loadLink();
+        updateLinkStatus(link.id, "refunded", { refundedAt: new Date().toISOString() }).then(
+          () => loadLink()
+        );
         clearInterval(interval);
       }
     }, 1000);
@@ -266,7 +267,7 @@ const LinkDetail: React.FC = () => {
 
       setTxSig(sig);
 
-      recordPayment(link.id, {
+      await recordPayment(link.id, {
         payer: publicKey.toBase58(),
         amount: payAmount,
         tokenType: link.tokenType,
@@ -312,7 +313,7 @@ const LinkDetail: React.FC = () => {
       if (!result.success) throw new Error(result.error);
 
       setTxSig(result.data!.signature);
-      updateLinkStatus(link.id, "funded", { fundedAt: new Date().toISOString() });
+      await updateLinkStatus(link.id, "funded", { fundedAt: new Date().toISOString() });
       loadLink();
 
       toast({
@@ -349,7 +350,7 @@ const LinkDetail: React.FC = () => {
       if (!result.success) throw new Error(result.error);
 
       setTxSig(result.data!.signature);
-      updateLinkStatus(link.id, "released", { releasedAt: new Date().toISOString() });
+      await updateLinkStatus(link.id, "released", { releasedAt: new Date().toISOString() });
       loadLink();
 
       toast({
@@ -386,7 +387,7 @@ const LinkDetail: React.FC = () => {
       if (!result.success) throw new Error(result.error);
 
       setTxSig(result.data!.signature);
-      updateLinkStatus(link.id, "refunded", { refundedAt: new Date().toISOString() });
+      await updateLinkStatus(link.id, "refunded", { refundedAt: new Date().toISOString() });
       loadLink();
 
       toast({ title: "Escrow refunded to payer" });
@@ -408,7 +409,7 @@ const LinkDetail: React.FC = () => {
     setActionLoading(true);
 
     try {
-      const updated = appealEscrow(link.id, walletAddress);
+      const updated = await appealEscrow(link.id, walletAddress);
       if (!updated) throw new Error("Unable to appeal this escrow");
 
       loadLink();
