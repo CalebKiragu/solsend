@@ -28,7 +28,6 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { getLinkById, updateLinkStatus, recordPayment, appealEscrow, safeClipboardWrite } from "@/lib/linkStore";
-import { useEscrowSDK } from "@/hooks/useEscrowSDK";
 import {
   buildFundEscrowSolTx,
   buildReleaseSolTx,
@@ -162,7 +161,6 @@ const LinkDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const { publicKey, sendTransaction } = useWallet();
   const { connection } = useConnection();
-  const sdk = useEscrowSDK();
   const { toast } = useToast();
 
   const [link, setLink] = useState<PaymentLink | null>(null);
@@ -295,98 +293,96 @@ const LinkDetail: React.FC = () => {
   };
 
   // ===== Escrow: Fund (payer only) =====
+  // Sends funds directly to the vault address (a deterministic PDA derived off-chain)
   const handleFundEscrow = async () => {
-    if (!publicKey || !link || !sdk || !link.escrowPda) return;
+    if (!publicKey || !link || !sendTransaction || !link.escrowPda) return;
     if (role !== "payer") return;
     setActionLoading(true);
 
     try {
-      const escrowAddress = new PublicKey(link.escrowPda);
-      let result;
+      const vaultAddress = new PublicKey(link.escrowPda);
+      let tx;
 
       if (link.tokenType === "SOL") {
-        result = await sdk.fundEscrowSol(escrowAddress);
+        tx = await buildFundEscrowSolTx(connection, publicKey, vaultAddress, link.amount);
       } else {
-        result = await sdk.fundEscrowSpl(escrowAddress);
+        const mint = getTokenMint(link.tokenType);
+        if (!mint) throw new Error("Unsupported token");
+        tx = await buildFundEscrowSplTx(connection, publicKey, vaultAddress, link.amount, mint);
       }
 
-      if (!result.success) throw new Error(result.error);
+      const sig = await sendTransaction(tx, connection);
+      await connection.confirmTransaction(sig, "confirmed");
 
-      setTxSig(result.data!.signature);
+      setTxSig(sig);
       await updateLinkStatus(link.id, "funded", { fundedAt: new Date().toISOString() });
       loadLink();
 
-      toast({
-        title: "Escrow funded",
-        description: `Tx: ${result.data!.signature.slice(0, 8)}...`,
-      });
+      toast({ title: "Escrow funded", description: `Tx: ${sig.slice(0, 8)}...` });
     } catch (err: any) {
-      toast({
-        title: "Transaction failed",
-        description: err?.message || "Unknown error",
-        variant: "destructive",
-      });
+      toast({ title: "Transaction failed", description: err?.message || "Unknown error", variant: "destructive" });
     } finally {
       setActionLoading(false);
     }
   };
 
   // ===== Escrow: Release (payer only) =====
+  // Payer sends from their wallet directly to recipient
   const handleReleaseEscrow = async () => {
-    if (!publicKey || !link || !sdk || !link.escrowPda) return;
+    if (!publicKey || !link || !sendTransaction) return;
     if (role !== "payer") return;
     setActionLoading(true);
 
     try {
-      const escrowAddress = new PublicKey(link.escrowPda);
-      let result;
+      const recipientPk = new PublicKey(link.recipient);
+      let tx;
 
       if (link.tokenType === "SOL") {
-        result = await sdk.releaseEscrowSol(escrowAddress);
+        tx = await buildReleaseSolTx(connection, publicKey, recipientPk, link.amount);
       } else {
-        result = await sdk.releaseEscrowSpl(escrowAddress);
+        const mint = getTokenMint(link.tokenType);
+        if (!mint) throw new Error("Unsupported token");
+        tx = await buildReleaseSplTx(connection, publicKey, recipientPk, link.amount, mint);
       }
 
-      if (!result.success) throw new Error(result.error);
+      const sig = await sendTransaction(tx, connection);
+      await connection.confirmTransaction(sig, "confirmed");
 
-      setTxSig(result.data!.signature);
+      setTxSig(sig);
       await updateLinkStatus(link.id, "released", { releasedAt: new Date().toISOString() });
       loadLink();
 
-      toast({
-        title: "Funds released",
-        description: `Sent to ${shortenAddress(link.recipient)}`,
-      });
+      toast({ title: "Funds released", description: `Sent to ${shortenAddress(link.recipient)}` });
     } catch (err: any) {
-      toast({
-        title: "Transaction failed",
-        description: err?.message || "Unknown error",
-        variant: "destructive",
-      });
+      toast({ title: "Transaction failed", description: err?.message || "Unknown error", variant: "destructive" });
     } finally {
       setActionLoading(false);
     }
   };
 
   // ===== Escrow: Refund (recipient only) =====
+  // Recipient sends funds back to payer
   const handleRefundEscrow = async () => {
-    if (!publicKey || !link || !sdk || !link.escrowPda) return;
+    if (!publicKey || !link || !sendTransaction) return;
     if (role !== "recipient") return;
     setActionLoading(true);
 
     try {
-      const escrowAddress = new PublicKey(link.escrowPda);
-      let result;
+      const creatorPk = new PublicKey(link.creator);
+      let tx;
 
       if (link.tokenType === "SOL") {
-        result = await sdk.refundEscrowSol(escrowAddress);
+        tx = await buildReleaseSolTx(connection, publicKey, creatorPk, link.amount);
       } else {
-        result = await sdk.refundEscrowSpl(escrowAddress);
+        const mint = getTokenMint(link.tokenType);
+        if (!mint) throw new Error("Unsupported token");
+        tx = await buildReleaseSplTx(connection, publicKey, creatorPk, link.amount, mint);
       }
 
-      if (!result.success) throw new Error(result.error);
+      const sig = await sendTransaction(tx, connection);
+      await connection.confirmTransaction(sig, "confirmed");
 
-      setTxSig(result.data!.signature);
+      setTxSig(sig);
       await updateLinkStatus(link.id, "refunded", { refundedAt: new Date().toISOString() });
       loadLink();
 

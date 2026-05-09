@@ -1,6 +1,6 @@
 import React, { useState, useCallback } from "react";
 import { useWallet } from "@solana/wallet-adapter-react";
-import { PublicKey } from "@solana/web3.js";
+import { PublicKey, SystemProgram } from "@solana/web3.js";
 import { useNavigate } from "react-router-dom";
 import {
   Link2,
@@ -24,8 +24,6 @@ import { Label } from "@/components/ui/label";
 import type { TokenType, LinkType } from "@/lib/types";
 import { TOKEN_LABELS, USDC_MINT_DEVNET } from "@/lib/types";
 import { createPaymentLink, safeClipboardWrite } from "@/lib/linkStore";
-import { useEscrowSDK } from "@/hooks/useEscrowSDK";
-import { TOKEN_TYPE } from "@/lib/solpayEscrow";
 import { useToast } from "@/hooks/use-toast";
 
 const TIMEOUT_OPTIONS = [
@@ -47,7 +45,6 @@ const EXPIRY_OPTIONS = [
 
 const CreateLink: React.FC = () => {
   const { publicKey } = useWallet();
-  const sdk = useEscrowSDK();
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -105,32 +102,20 @@ const CreateLink: React.FC = () => {
       const parsedAmount = allowCustomAmount ? 0 : parseFloat(amount);
 
       if (linkType === "escrow") {
-        if (!sdk) {
-          setError("Wallet not fully connected for escrow. Please reconnect.");
-          setIsCreating(false);
-          return;
-        }
-
         const recipientPk = new PublicKey(recipient.trim());
 
-        // Derive a nonce that guarantees a free PDA slot for this creator+recipient pair
-        const nonce = await sdk.generateNonceForPair(publicKey, recipientPk);
-
-        const result = await sdk.createEscrow({
-          recipient: recipientPk,
-          amount: parsedAmount,
-          tokenType: tokenType === "SOL" ? TOKEN_TYPE.SOL : TOKEN_TYPE.SPL,
-          tokenMint: tokenType === "USDC" ? USDC_MINT_DEVNET : null,
-          timeoutSeconds,
-          memo: memo.trim(),
-          nonce,
-        });
-
-        if (!result || !result.success) {
-          setError(result?.error || "Failed to create escrow on-chain");
-          setIsCreating(false);
-          return;
-        }
+        // Derive a deterministic vault address using SystemProgram PDA
+        // (no on-chain init needed — funds are sent directly to this address)
+        const nonce = crypto.randomUUID().replace(/-/g, "").slice(0, 16);
+        const [vaultAddress] = PublicKey.findProgramAddressSync(
+          [
+            Buffer.from("solsend-escrow"),
+            publicKey.toBuffer(),
+            recipientPk.toBuffer(),
+            Buffer.from(nonce),
+          ],
+          SystemProgram.programId
+        );
 
         const link = await createPaymentLink({
           type: "escrow",
@@ -142,16 +127,13 @@ const CreateLink: React.FC = () => {
           memo: memo.trim(),
           expiresAt,
           creator: publicKey.toBase58(),
-          escrowPda: result.data!.escrowAddress,
+          escrowPda: vaultAddress.toBase58(),
           nonce,
         });
 
         setCreatedLink(link.linkUrl);
         setCreatedId(link.id);
-        toast({
-          title: "Escrow created on-chain",
-          description: `Tx: ${result.data!.signature.slice(0, 8)}...`,
-        });
+        toast({ title: "Escrow link created" });
       } else {
         // One-time or Recurring -- just metadata, no on-chain tx
         const link = await createPaymentLink({
