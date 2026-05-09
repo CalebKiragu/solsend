@@ -167,6 +167,17 @@ export class SolSendEscrowSDK {
       if (params.nonce.length > 32) return { success: false, error: "Nonce too long (max 32)" };
 
       const [escrowPda] = this.getEscrowPDA(this.provider.publicKey, params.nonce);
+      console.debug("[createEscrow] nonce:", params.nonce, "escrowPda:", escrowPda.toBase58());
+
+      // Pre-flight: ensure the derived PDA doesn't already exist on-chain.
+      // If it does (e.g. from a prior session), the init will fail with 0x0.
+      const existing = await this.provider.connection.getAccountInfo(escrowPda);
+      if (existing !== null) {
+        return {
+          success: false,
+          error: `Escrow account already exists on-chain (${escrowPda.toBase58().slice(0, 8)}…). Please try again — a new nonce will be generated.`,
+        };
+      }
 
       // Convert amount to smallest units
       let amountBN: BN;
