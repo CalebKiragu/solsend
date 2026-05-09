@@ -1,0 +1,39 @@
+    Finished `release` profile [optimized] target(s) in 0.79s
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.30s
+     Running unittests src/lib.rs (/69fdddb5be9241901c1cdb09/contracts/target/debug/deps/workspace-51ba4ba41e55366b)
+
+Found a 'test' script in the Anchor.toml. Running it as a test suite!
+
+Running test suite: "/69fdddb5be9241901c1cdb09/contracts/Anchor.toml"
+
+yarn run v1.22.22
+$ /69fdddb5be9241901c1cdb09/contracts/node_modules/.bin/ts-mocha -p ./tsconfig.json -t 1000000 'tests/**/*.ts'
+bigint: Failed to load bindings, pure JS will be used (try npm run rebuild?)
+
+
+  solpay_escrow
+    ✔ Initialize Config (417ms)
+    ✔ Create SOL Escrow (402ms)
+    ✔ Fund SOL Escrow (406ms)
+    ✔ Release SOL Escrow to Recipient (405ms)
+    ✔ Full SOL Escrow Flow (create -> fund -> release) (1226ms)
+    ✔ Create SPL Token Escrow (412ms)
+    ✔ Fund SPL Token Escrow (416ms)
+    ✔ Release SPL Token Escrow to Recipient (410ms)
+    ✔ Fails to fund an already released escrow (39ms)
+    ✔ Fails to release an unfunded escrow (396ms)
+    ✔ Fails when unauthorized user tries to fund (816ms)
+    ✔ Fails when memo exceeds 100 characters (56ms)
+    ✔ Fails when nonce exceeds 32 characters
+    ✔ Fails when amount is zero
+    ✔ Fails to refund SOL escrow with no timeout (773ms)
+    ✔ Fails to refund SOL escrow before timeout (813ms)
+    ✔ Fails to release an already released escrow
+    ✔ Full SPL Token Escrow Flow (create -> fund -> release) (1231ms)
+    ✔ Creates escrow with max length memo (100) and nonce (32) (413ms)
+    ✔ Fails when unauthorized user tries to release (1251ms)
+
+
+  20 passing (12s)
+
+Done in 14.04s.

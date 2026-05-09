@@ -1,0 +1,238 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap');
+
+@layer base {
+  :root {
+    --background: 220 20% 4%;
+    --foreground: 210 20% 95%;
+
+    --card: 220 18% 7%;
+    --card-foreground: 210 20% 95%;
+
+    --popover: 220 18% 7%;
+    --popover-foreground: 210 20% 95%;
+
+    --primary: 162 72% 46%;
+    --primary-foreground: 220 20% 4%;
+
+    --secondary: 220 16% 12%;
+    --secondary-foreground: 210 20% 85%;
+
+    --muted: 220 14% 14%;
+    --muted-foreground: 215 14% 50%;
+
+    --accent: 162 72% 46%;
+    --accent-foreground: 220 20% 4%;
+
+    --destructive: 0 72% 51%;
+    --destructive-foreground: 210 40% 98%;
+
+    --border: 220 14% 14%;
+    --input: 220 14% 16%;
+    --ring: 162 72% 46%;
+
+    --radius: 0.75rem;
+
+    --sidebar-background: 220 18% 6%;
+    --sidebar-foreground: 210 20% 85%;
+    --sidebar-primary: 162 72% 46%;
+    --sidebar-primary-foreground: 220 20% 4%;
+    --sidebar-accent: 220 14% 12%;
+    --sidebar-accent-foreground: 210 20% 85%;
+    --sidebar-border: 220 14% 12%;
+    --sidebar-ring: 162 72% 46%;
+
+    /* Custom tokens */
+    --emerald: 162 72% 46%;
+    --emerald-glow: 162 72% 56%;
+    --emerald-muted: 162 40% 20%;
+    --surface-1: 220 18% 7%;
+    --surface-2: 220 16% 10%;
+    --surface-3: 220 14% 14%;
+
+    --gradient-primary: linear-gradient(135deg, hsl(162 72% 46%) 0%, hsl(172 66% 50%) 100%);
+    --gradient-hero: linear-gradient(180deg, hsl(220 20% 4%) 0%, hsl(220 24% 6%) 50%, hsl(220 20% 4%) 100%);
+    --gradient-card: linear-gradient(135deg, hsl(220 18% 8%) 0%, hsl(220 18% 6%) 100%);
+    --gradient-glow: radial-gradient(ellipse at center, hsl(162 72% 46% / 0.08) 0%, transparent 70%);
+
+    --shadow-sm: 0 1px 2px hsl(0 0% 0% / 0.3);
+    --shadow-md: 0 4px 12px hsl(0 0% 0% / 0.4);
+    --shadow-lg: 0 8px 30px hsl(0 0% 0% / 0.5);
+    --shadow-glow: 0 0 40px hsl(162 72% 46% / 0.15);
+    --shadow-glow-sm: 0 0 20px hsl(162 72% 46% / 0.1);
+  }
+}
+
+@layer base {
+  * {
+    border-color: hsl(var(--border));
+  }
+
+  body {
+    background-color: hsl(var(--background));
+    color: hsl(var(--foreground));
+    font-family: 'Inter', system-ui, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  .font-mono {
+    font-family: 'JetBrains Mono', monospace;
+  }
+}
+
+@layer components {
+  /* Wallet button override */
+  .wallet-adapter-button-trigger {
+    background: hsl(var(--primary)) !important;
+    color: hsl(var(--primary-foreground)) !important;
+    border-radius: var(--radius) !important;
+    font-family: 'Inter', system-ui, sans-serif !important;
+    font-weight: 600 !important;
+    font-size: 0.875rem !important;
+    padding: 0.625rem 1.25rem !important;
+    height: auto !important;
+    line-height: 1.25rem !important;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
+    border: 1px solid hsl(var(--primary) / 0.3) !important;
+  }
+  
+  .wallet-adapter-button-trigger:hover {
+    background: hsl(var(--emerald-glow)) !important;
+    box-shadow: var(--shadow-glow-sm) !important;
+  }
+
+  .wallet-adapter-button {
+    background: hsl(var(--surface-2)) !important;
+    color: hsl(var(--foreground)) !important;
+    border-radius: var(--radius) !important;
+    font-family: 'Inter', system-ui, sans-serif !important;
+    font-weight: 500 !important;
+    border: 1px solid hsl(var(--border)) !important;
+  }
+
+  .wallet-adapter-button:hover {
+    background: hsl(var(--surface-3)) !important;
+  }
+
+  .wallet-adapter-modal-wrapper {
+    background: hsl(var(--card)) !important;
+    border: 1px solid hsl(var(--border)) !important;
+    border-radius: var(--radius) !important;
+  }
+
+  .wallet-adapter-modal-button-close {
+    background: hsl(var(--surface-2)) !important;
+  }
+
+  .wallet-adapter-modal-title {
+    color: hsl(var(--foreground)) !important;
+    font-family: 'Inter', system-ui, sans-serif !important;
+  }
+
+  .wallet-adapter-modal-list li {
+    border: none !important;
+  }
+
+  /* Glass card */
+  .glass-card {
+    background: hsl(var(--surface-1));
+    border: 1px solid hsl(var(--border));
+    border-radius: var(--radius);
+    backdrop-filter: blur(12px);
+  }
+
+  /* Pulse glow animation */
+  .pulse-glow {
+    animation: pulseGlow 3s ease-in-out infinite;
+  }
+
+  @keyframes pulseGlow {
+    0%, 100% { box-shadow: 0 0 20px hsl(162 72% 46% / 0.1); }
+    50% { box-shadow: 0 0 40px hsl(162 72% 46% / 0.2); }
+  }
+
+  /* Shimmer */
+  .shimmer {
+    background: linear-gradient(
+      90deg,
+      hsl(var(--surface-2)) 0%,
+      hsl(var(--surface-3)) 50%,
+      hsl(var(--surface-2)) 100%
+    );
+    background-size: 200% 100%;
+    animation: shimmer 2s ease-in-out infinite;
+  }
+
+  @keyframes shimmer {
+    0% { background-position: -200% 0; }
+    100% { background-position: 200% 0; }
+  }
+
+  /* Status badges */
+  .status-pending {
+    background: hsl(45 93% 47% / 0.1);
+    color: hsl(45 93% 57%);
+    border: 1px solid hsl(45 93% 47% / 0.2);
+  }
+
+  .status-funded {
+    background: hsl(162 72% 46% / 0.1);
+    color: hsl(var(--primary));
+    border: 1px solid hsl(162 72% 46% / 0.2);
+  }
+
+  .status-released {
+    background: hsl(217 91% 60% / 0.1);
+    color: hsl(217 91% 65%);
+    border: 1px solid hsl(217 91% 60% / 0.2);
+  }
+
+  .status-active {
+    background: hsl(162 72% 46% / 0.1);
+    color: hsl(var(--primary));
+    border: 1px solid hsl(162 72% 46% / 0.2);
+  }
+
+  .status-appealed {
+    background: hsl(25 95% 53% / 0.1);
+    color: hsl(25 95% 63%);
+    border: 1px solid hsl(25 95% 53% / 0.2);
+  }
+
+  .status-refunded {
+    background: hsl(0 72% 51% / 0.1);
+    color: hsl(0 72% 61%);
+    border: 1px solid hsl(0 72% 51% / 0.2);
+  }
+
+  /* Type badges */
+  .type-onetime {
+    background: hsl(217 91% 60% / 0.1);
+    color: hsl(217 91% 65%);
+    border: 1px solid hsl(217 91% 60% / 0.2);
+  }
+
+  .type-recurring {
+    background: hsl(280 67% 55% / 0.1);
+    color: hsl(280 67% 65%);
+    border: 1px solid hsl(280 67% 55% / 0.2);
+  }
+
+  .type-escrow {
+    background: hsl(45 93% 47% / 0.1);
+    color: hsl(45 93% 57%);
+    border: 1px solid hsl(45 93% 47% / 0.2);
+  }
+
+  /* Grid pattern background */
+  .grid-pattern {
+    background-image: 
+      linear-gradient(hsl(var(--border) / 0.3) 1px, transparent 1px),
+      linear-gradient(90deg, hsl(var(--border) / 0.3) 1px, transparent 1px);
+    background-size: 60px 60px;
+  }
+}

@@ -1,0 +1,138 @@
+{
+  "address": "11111111111111111111111111111111",
+  "metadata": {
+    "name": "workspace",
+    "version": "0.1.0",
+    "spec": "0.1.0"
+  },
+  "instructions": [
+    {
+      "name": "create_escrow",
+      "discriminator": [0, 0, 0, 0, 0, 0, 0, 1],
+      "accounts": [
+        { "name": "escrow", "writable": true, "pda": { "seeds": [] } },
+        { "name": "creator", "writable": true, "signer": true },
+        { "name": "system_program", "address": "11111111111111111111111111111111" }
+      ],
+      "args": [
+        { "name": "recipient", "type": "pubkey" },
+        { "name": "amount", "type": "u64" },
+        { "name": "token_type", "type": "u8" },
+        { "name": "token_mint", "type": { "option": "pubkey" } },
+        { "name": "timeout_seconds", "type": { "option": "i64" } },
+        { "name": "memo", "type": "string" },
+        { "name": "nonce", "type": "string" }
+      ]
+    },
+    {
+      "name": "fund_escrow_sol",
+      "discriminator": [0, 0, 0, 0, 0, 0, 0, 2],
+      "accounts": [
+        { "name": "escrow", "writable": true },
+        { "name": "vault", "writable": true },
+        { "name": "creator", "writable": true, "signer": true },
+        { "name": "system_program", "address": "11111111111111111111111111111111" }
+      ],
+      "args": []
+    },
+    {
+      "name": "fund_escrow_spl",
+      "discriminator": [0, 0, 0, 0, 0, 0, 0, 3],
+      "accounts": [
+        { "name": "escrow", "writable": true },
+        { "name": "escrow_token_account", "writable": true },
+        { "name": "creator_token_account", "writable": true },
+        { "name": "token_mint", "writable": false },
+        { "name": "creator", "writable": true, "signer": true },
+        { "name": "associated_token_program", "address": "ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL" },
+        { "name": "token_program", "address": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA" },
+        { "name": "system_program", "address": "11111111111111111111111111111111" }
+      ],
+      "args": []
+    },
+    {
+      "name": "release_escrow_sol",
+      "discriminator": [0, 0, 0, 0, 0, 0, 0, 4],
+      "accounts": [
+        { "name": "escrow", "writable": true },
+        { "name": "vault", "writable": true },
+        { "name": "recipient", "writable": true },
+        { "name": "creator", "writable": true, "signer": true },
+        { "name": "system_program", "address": "11111111111111111111111111111111" }
+      ],
+      "args": []
+    },
+    {
+      "name": "release_escrow_spl",
+      "discriminator": [0, 0, 0, 0, 0, 0, 0, 5],
+      "accounts": [
+        { "name": "escrow", "writable": true },
+        { "name": "escrow_token_account", "writable": true },
+        { "name": "recipient_token_account", "writable": true },
+        { "name": "token_mint", "writable": false },
+        { "name": "recipient", "writable": true },
+        { "name": "creator", "writable": true, "signer": true },
+        { "name": "associated_token_program", "address": "ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL" },
+        { "name": "token_program", "address": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA" },
+        { "name": "system_program", "address": "11111111111111111111111111111111" }
+      ],
+      "args": []
+    },
+    {
+      "name": "refund_escrow_sol",
+      "discriminator": [0, 0, 0, 0, 0, 0, 0, 6],
+      "accounts": [
+        { "name": "escrow", "writable": true },
+        { "name": "vault", "writable": true },
+        { "name": "creator", "writable": true },
+        { "name": "signer", "writable": true, "signer": true },
+        { "name": "system_program", "address": "11111111111111111111111111111111" }
+      ],
+      "args": []
+    },
+    {
+      "name": "refund_escrow_spl",
+      "discriminator": [0, 0, 0, 0, 0, 0, 0, 7],
+      "accounts": [
+        { "name": "escrow", "writable": true },
+        { "name": "escrow_token_account", "writable": true },
+        { "name": "creator_token_account", "writable": true },
+        { "name": "token_mint", "writable": false },
+        { "name": "creator", "writable": true },
+        { "name": "signer", "writable": true, "signer": true },
+        { "name": "associated_token_program", "address": "ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL" },
+        { "name": "token_program", "address": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA" },
+        { "name": "system_program", "address": "11111111111111111111111111111111" }
+      ],
+      "args": []
+    }
+  ],
+  "accounts": [
+    {
+      "name": "EscrowState",
+      "discriminator": [0, 0, 0, 0, 0, 0, 0, 0]
+    }
+  ],
+  "types": [
+    {
+      "name": "EscrowState",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          { "name": "creator", "type": "pubkey" },
+          { "name": "recipient", "type": "pubkey" },
+          { "name": "amount", "type": "u64" },
+          { "name": "token_type", "type": "u8" },
+          { "name": "token_mint", "type": "pubkey" },
+          { "name": "status", "type": "u8" },
+          { "name": "timeout_seconds", "type": "i64" },
+          { "name": "created_at", "type": "i64" },
+          { "name": "funded_at", "type": "i64" },
+          { "name": "memo", "type": "string" },
+          { "name": "nonce", "type": "string" },
+          { "name": "bump", "type": "u8" }
+        ]
+      }
+    }
+  ]
+}
