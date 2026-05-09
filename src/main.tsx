@@ -1,3 +1,6 @@
+import { Buffer } from 'buffer';
+window.Buffer = Buffer;
+
 import './index.css';
 import { createRoot } from 'react-dom/client';
 import { MemoryRouter } from 'react-router-dom';

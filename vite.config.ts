@@ -13,9 +13,17 @@ export default defineConfig({
   resolve: {
     alias: {
       '@': path.resolve(__dirname, 'src'),
+      // Polyfill Node.js built-ins for browser
+      buffer: 'buffer',
     },
+  },
+  define: {
+    // Required by @solana/web3.js and @coral-xyz/anchor
+    'global': 'globalThis',
+    'process.env': '{}',
   },
   optimizeDeps: {
     exclude: ['lucide-react'],
+    include: ['buffer'],
   },
 }) 
