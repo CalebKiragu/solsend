@@ -20,6 +20,14 @@ export type EscrowRole = "payer" | "recipient" | "none";
 /** Determine the connected wallet's role on an escrow link */
 export function getEscrowRole(link: PaymentLink, walletAddress: string | null): EscrowRole {
   if (!walletAddress) return "none";
+  // If creator set themselves as recipient, they intend to receive —
+  // treat them as recipient so they see the correct actions.
+  // Anyone else who opens the link (the actual funder) is the payer.
+  if (link.creator === link.recipient) {
+    // Creator/recipient is the same person
+    if (walletAddress === link.recipient) return "recipient";
+    return "payer"; // anyone else who opens it is the funder
+  }
   if (walletAddress === link.creator) return "payer";
   if (walletAddress === link.recipient) return "recipient";
   return "none";

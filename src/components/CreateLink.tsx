@@ -84,10 +84,9 @@ const CreateLink: React.FC = () => {
       setError("Amount must be greater than 0");
       return false;
     }
-    if (recipient.trim() === publicKey.toBase58()) {
-      setError("Recipient cannot be the same as your wallet");
-      return false;
-    }
+    // No self-send restriction — creator can be recipient (e.g. sharing a payment link
+    // that pays themselves, or creating an escrow link where they are the recipient
+    // and the funder is someone else who opens the link)
     return true;
   }, [publicKey, recipient, amount, linkType, allowCustomAmount]);
 
