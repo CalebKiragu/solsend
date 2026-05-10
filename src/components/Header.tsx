@@ -1,7 +1,7 @@
 import React from "react";
 import { Link, useLocation } from "react-router-dom";
 import { WalletMultiButton } from "@solana/wallet-adapter-react-ui";
-import { Send, LayoutDashboard, Plus } from "lucide-react";
+import { LayoutDashboard, Plus } from "lucide-react";
 
 const Header: React.FC = () => {
   const location = useLocation();
@@ -15,9 +15,12 @@ const Header: React.FC = () => {
     <header className="sticky top-0 z-50 border-b border-border/50 bg-background/80 backdrop-blur-xl">
       <div className="container flex h-16 items-center justify-between">
         <Link to="/" className="flex items-center gap-2.5 group">
-          <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary/10 border border-primary/20 group-hover:bg-primary/15 transition-colors">
-            <Send className="h-5 w-5 text-primary" />
-          </div>
+          {/* Logo image — rounded corners built into the SVG, no wrapper box needed */}
+          <img
+            src="/logo.svg"
+            alt="SolSend"
+            className="h-9 w-9 rounded-xl object-cover"
+          />
           <div className="flex flex-col">
             <span className="text-base font-bold tracking-tight text-foreground leading-none">
               SolSend
