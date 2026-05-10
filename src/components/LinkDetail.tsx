@@ -706,46 +706,73 @@ const LinkDetail: React.FC = () => {
         {/* ---- ONE-TIME / RECURRING PAY ---- */}
         {publicKey && !isEscrow && isActive && (
           <div className="space-y-3">
-            <p className="text-xs text-muted-foreground">
-              {isRecurring
-                ? `This is a recurring payment link. Pay ${
-                    link.allowCustomAmount
-                      ? "any amount"
-                      : `${link.amount} ${TOKEN_LABELS[link.tokenType]}`
-                  } directly to the recipient.`
-                : `Pay ${link.amount} ${TOKEN_LABELS[link.tokenType]} directly to the recipient.`}
-            </p>
-            {link.allowCustomAmount && isRecurring && (
-              <div className="space-y-1.5">
-                <p className="text-[11px] text-muted-foreground font-medium">Enter amount</p>
-                <Input
-                  type="number"
-                  step="0.001"
-                  min="0"
-                  placeholder={`Amount in ${TOKEN_LABELS[link.tokenType]}`}
-                  value={customAmount}
-                  onChange={(e) => setCustomAmount(e.target.value)}
-                  className="bg-secondary border-border text-foreground placeholder:text-muted-foreground text-sm"
-                />
+            {/* Creator opened their own link — they are the recipient */}
+            {walletAddress === link.recipient ? (
+              <div className="flex flex-col items-center gap-4 py-4 text-center">
+                <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-primary/10 border border-primary/20">
+                  <Send className="h-6 w-6 text-primary" />
+                </div>
+                <div className="space-y-1">
+                  <p className="text-sm font-semibold text-foreground">Share this link to get paid!</p>
+                  <p className="text-xs text-muted-foreground">
+                    You are the recipient on this link. Share it with anyone who should pay you.
+                  </p>
+                </div>
+                <button
+                  onClick={() => {
+                    safeClipboardWrite(link.linkUrl);
+                    toast({ title: "Link copied to clipboard" });
+                  }}
+                  className="flex items-center gap-2 px-4 py-2 rounded-lg bg-primary/10 border border-primary/20 text-primary text-sm font-medium hover:bg-primary/15 transition-colors"
+                >
+                  <Copy className="h-4 w-4" />
+                  Copy Payment Link
+                </button>
               </div>
+            ) : (
+              <>
+                <p className="text-xs text-muted-foreground">
+                  {isRecurring
+                    ? `This is a recurring payment link. Pay ${
+                        link.allowCustomAmount
+                          ? "any amount"
+                          : `${link.amount} ${TOKEN_LABELS[link.tokenType]}`
+                      } directly to the recipient.`
+                    : `Pay ${link.amount} ${TOKEN_LABELS[link.tokenType]} directly to the recipient.`}
+                </p>
+                {link.allowCustomAmount && isRecurring && (
+                  <div className="space-y-1.5">
+                    <p className="text-[11px] text-muted-foreground font-medium">Enter amount</p>
+                    <Input
+                      type="number"
+                      step="0.001"
+                      min="0"
+                      placeholder={`Amount in ${TOKEN_LABELS[link.tokenType]}`}
+                      value={customAmount}
+                      onChange={(e) => setCustomAmount(e.target.value)}
+                      className="bg-secondary border-border text-foreground placeholder:text-muted-foreground text-sm"
+                    />
+                  </div>
+                )}
+                <Button
+                  onClick={handleDirectPay}
+                  disabled={actionLoading}
+                  className="w-full bg-primary text-primary-foreground hover:bg-emerald-glow font-semibold h-11"
+                >
+                  {actionLoading ? (
+                    <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                  ) : (
+                    <Send className="h-4 w-4 mr-2" />
+                  )}
+                  Pay{" "}
+                  {link.allowCustomAmount
+                    ? customAmount
+                      ? `${customAmount} ${TOKEN_LABELS[link.tokenType]}`
+                      : TOKEN_LABELS[link.tokenType]
+                    : `${link.amount} ${TOKEN_LABELS[link.tokenType]}`}
+                </Button>
+              </>
             )}
-            <Button
-              onClick={handleDirectPay}
-              disabled={actionLoading}
-              className="w-full bg-primary text-primary-foreground hover:bg-emerald-glow font-semibold h-11"
-            >
-              {actionLoading ? (
-                <Loader2 className="h-4 w-4 animate-spin mr-2" />
-              ) : (
-                <Send className="h-4 w-4 mr-2" />
-              )}
-              Pay{" "}
-              {link.allowCustomAmount
-                ? customAmount
-                  ? `${customAmount} ${TOKEN_LABELS[link.tokenType]}`
-                  : TOKEN_LABELS[link.tokenType]
-                : `${link.amount} ${TOKEN_LABELS[link.tokenType]}`}
-            </Button>
           </div>
         )}
 
